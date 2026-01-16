@@ -1,0 +1,152 @@
+Bib-Sanitizer 项目结构
+========================
+
+项目根目录: /home/hujie/paper/tools/Bib-Sanitizer/
+
+Bib-Sanitizer/
+│
+├── README.md                    # 项目主文档
+├── QUICKSTART.md                # 快速开始指南
+├── ARCHITECTURE.md              # 架构设计文档
+├── CONTRIBUTING.md              # 贡献指南
+├── LICENSE                      # MIT 许可证
+├── PROJECT_STRUCTURE.txt        # 本文件 - 项目结构说明
+│
+├── requirements.txt             # Python 依赖列表
+├── config.yaml                  # 配置文件（会议映射、API设置等）
+├── .gitignore                   # Git 忽略规则
+│
+├── bib_sanitizer.py            # 主入口程序
+├── demo.py                      # 功能演示脚本
+├── test.sh                      # 测试脚本
+│
+├── utils/                       # 工具模块
+│   ├── __init__.py
+│   ├── bib_parser.py           # BibTeX 文件解析和写入
+│   └── report.py               # 报告生成和展示
+│
+├── sources/                     # 数据源 API 适配器
+│   ├── __init__.py
+│   ├── semantic_scholar.py     # Semantic Scholar API
+│   └── dblp.py                 # DBLP API
+│
+├── checkers/                    # 检查器模块
+│   ├── __init__.py
+│   ├── auto_update.py          # 功能1: 自动更新 arXiv 条目
+│   ├── format_clean.py         # 功能2: 统一会议名称格式
+│   └── link_check.py           # 功能3: 检查链接可用性
+│
+└── examples/                    # 示例和测试文件
+    ├── README.md               # 示例说明
+    └── sample.bib              # 示例 BibTeX 文件
+
+核心功能模块：
+==============
+
+1. 主程序 (bib_sanitizer.py)
+   - 命令行参数解析
+   - 流程控制和协调
+   - 配置管理
+
+2. BibTeX 解析 (utils/bib_parser.py)
+   - 解析 .bib 文件
+   - 写回 .bib 文件
+   - 基于 bibtexparser 库
+
+3. 自动更新 (checkers/auto_update.py)
+   - 识别 arXiv-only 条目
+   - 查询 Semantic Scholar / DBLP
+   - 更新为正式发表版本
+
+4. 格式清理 (checkers/format_clean.py)
+   - 读取映射规则
+   - 统一会议名称格式
+   - 支持正则匹配
+
+5. 链接检查 (checkers/link_check.py)
+   - 检查 URL 和 PDF 链接
+   - HTTP HEAD/GET 请求
+   - 记录失效链接
+
+6. 报告生成 (utils/report.py)
+   - 收集处理结果
+   - 生成彩色控制台输出
+   - 统计信息汇总
+
+数据源适配器：
+==============
+
+- Semantic Scholar API (sources/semantic_scholar.py)
+  * 论文元数据查询
+  * arXiv ID / 标题搜索
+  * 识别正式发表版本
+
+- DBLP API (sources/dblp.py)
+  * 计算机科学文献数据库
+  * XML 响应解析
+  * 会议和期刊论文
+
+配置系统：
+==========
+
+config.yaml 包含：
+- 数据源优先级
+- API 超时和重试设置
+- 会议名称映射规则
+- 链接检查参数
+- 输出选项
+
+支持的会议：
+============
+
+默认配置包含以下会议的映射规则：
+- CVPR, ICCV, ECCV (计算机视觉)
+- NeurIPS, ICML, ICLR (机器学习)
+- ACL, EMNLP (自然语言处理)
+- AAAI, IJCAI (人工智能)
+
+可通过编辑 config.yaml 添加更多映射。
+
+使用流程：
+==========
+
+1. 安装依赖:
+   pip install -r requirements.txt
+
+2. 运行演示:
+   python demo.py
+
+3. 测试功能:
+   bash test.sh
+
+4. 实际使用:
+   python bib_sanitizer.py your_file.bib --all
+
+文档索引：
+==========
+
+- README.md          - 项目概述和基本使用
+- QUICKSTART.md      - 详细教程和常见场景
+- ARCHITECTURE.md    - 架构设计和扩展指南
+- CONTRIBUTING.md    - 如何贡献代码
+- examples/README.md - 示例文件说明
+
+快速命令：
+==========
+
+# 查看帮助
+python bib_sanitizer.py --help
+
+# 所有功能（推荐）
+python bib_sanitizer.py file.bib --all
+
+# 安全模式（不修改文件）
+python bib_sanitizer.py file.bib --all --dry-run
+
+# 单独功能
+python bib_sanitizer.py file.bib --auto-update
+python bib_sanitizer.py file.bib --format-clean
+python bib_sanitizer.py file.bib --check-links
+
+# 指定输出
+python bib_sanitizer.py in.bib --all --output out.bib
