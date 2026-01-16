@@ -1,5 +1,6 @@
 """报告生成工具"""
 
+import json
 from colorama import Fore, Style
 
 
@@ -9,7 +10,7 @@ class Report:
     def __init__(self):
         """初始化报告"""
         self.updates = []  # 更新的条目
-        self.format_changes = []  # 格式变更
+        self.author_truncations = []  # 作者截断
         self.dead_links = []  # 失效链接
         self.errors = []  # 错误信息
     
@@ -22,13 +23,14 @@ class Report:
             'changes': changes
         })
     
-    def add_format_change(self, entry_id, field, old_value, new_value):
-        """添加格式变更记录"""
-        self.format_changes.append({
+    def add_author_truncation(self, entry_id, old_value, new_value, total_authors, max_authors):
+        """添加作者截断记录"""
+        self.author_truncations.append({
             'entry_id': entry_id,
-            'field': field,
             'old_value': old_value,
-            'new_value': new_value
+            'new_value': new_value,
+            'total_authors': total_authors,
+            'max_authors': max_authors
         })
     
     def add_dead_link(self, entry_id, field, url, status):
@@ -62,14 +64,14 @@ class Report:
         else:
             print(f"\n{Fore.YELLOW}[更新] 没有需要更新的条目{Style.RESET_ALL}")
         
-        # 打印格式变更
-        if self.format_changes:
-            print(f"\n{Fore.GREEN}[格式] 统一了 {len(self.format_changes)} 处格式:{Style.RESET_ALL}")
-            for change in self.format_changes:
-                print(f"  - {Fore.CYAN}{change['entry_id']}{Style.RESET_ALL}.{change['field']}: "
+        # 打印作者截断
+        if self.author_truncations:
+            print(f"\n{Fore.GREEN}[作者] 截断了 {len(self.author_truncations)} 个条目:{Style.RESET_ALL}")
+            for change in self.author_truncations:
+                print(f"  - {Fore.CYAN}{change['entry_id']}{Style.RESET_ALL}: "
                       f"{change['old_value']} → {change['new_value']}")
         else:
-            print(f"\n{Fore.YELLOW}[格式] 没有需要统一的格式{Style.RESET_ALL}")
+            print(f"\n{Fore.YELLOW}[作者] 没有需要截断的作者{Style.RESET_ALL}")
         
         # 打印失效链接
         if self.dead_links:
@@ -91,7 +93,7 @@ class Report:
         print(f"\n{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
         print(f"{Fore.CYAN}统计信息:{Style.RESET_ALL}")
         print(f"  • 更新条目: {len(self.updates)}")
-        print(f"  • 格式变更: {len(self.format_changes)}")
+        print(f"  • 作者截断: {len(self.author_truncations)}")
         print(f"  • 失效链接: {len(self.dead_links)}")
         print(f"  • 错误: {len(self.errors)}")
         print(f"{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
@@ -99,8 +101,22 @@ class Report:
     def to_dict(self):
         """转换为字典"""
         return {
-            'updates': self.updates,
-            'format_changes': self.format_changes,
-            'dead_links': self.dead_links,
-            'errors': self.errors
+            'modifications': {
+                'updates': self.updates,
+                'author_truncations': self.author_truncations
+            },
+            'issues': {
+                'dead_links': self.dead_links,
+                'errors': self.errors
+            }
         }
+
+    def write_json(self, filepath):
+        """写入 JSON 报告"""
+        try:
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(self.to_dict(), f, ensure_ascii=False, indent=2)
+            return True
+        except Exception as e:
+            print(f"{Fore.RED}[错误] 写入报告失败: {e}{Style.RESET_ALL}")
+            return False

@@ -1,19 +1,19 @@
-# Bib-Sanitizer
+# Bib-Check
 
 一个强大的 BibTeX 文件深度检查和自动修复工具。
 
 ## ✨ 功能特性
 
 1. **📚 Auto-Update**: 自动检测 arXiv 预印本论文，在 Semantic Scholar 或 DBLP 查询正式发表版本并更新条目
-2. **🎨 Format Clean**: 统一会议名称简写（例如将 "Proceedings of the IEEE/CVF Conference on..." 统一为 "CVPR"）
-3. **🔗 Dead Link Check**: 检查 PDF 和 URL 链接的可用性
+2. **🔗 Dead Link Check**: 检查 PDF 和 URL 链接的可用性
+3. **✂️ 作者截断**: 作者过长时自动截断为 `et. al`
 
 ## 🚀 快速开始
 
 ### 安装
 
 ```bash
-cd /home/hujie/paper/tools/Bib-Sanitizer
+cd /path/to/Bib-Check
 pip install -r requirements.txt
 ```
 
@@ -21,10 +21,10 @@ pip install -r requirements.txt
 
 ```bash
 # 启用所有功能（推荐）
-python bib_sanitizer.py your_file.bib --all
+python bib_check.py your_file.bib --all
 
 # 先运行 dry-run 查看会有哪些变化
-python bib_sanitizer.py your_file.bib --all --dry-run
+python bib_check.py your_file.bib --all --dry-run
 ```
 
 ## 📖 详细文档
@@ -39,33 +39,30 @@ python bib_sanitizer.py your_file.bib --all --dry-run
 
 ```bash
 # 自动更新 arXiv 条目
-python bib_sanitizer.py input.bib --auto-update
-
-# 统一会议名称格式
-python bib_sanitizer.py input.bib --format-clean
+python bib_check.py input.bib --auto-update
 
 # 检查链接
-python bib_sanitizer.py input.bib --check-links
+python bib_check.py input.bib --check-links
 ```
 
 ### 高级选项
 
 ```bash
 # 指定输出文件
-python bib_sanitizer.py input.bib --output cleaned.bib
+python bib_check.py input.bib --output cleaned.bib
 
 # 配置数据源优先级
-python bib_sanitizer.py input.bib --auto-update --priority dblp,semantic-scholar
+python bib_check.py input.bib --auto-update --priority dblp,semantic-scholar
 
 # 使用自定义配置
-python bib_sanitizer.py input.bib --all --config my_config.yaml
+python bib_check.py input.bib --all --config my_config.yaml
 ```
 
 ## ⚙️ 配置
 
 编辑 `config.yaml` 文件来自定义：
 
-- 会议名称映射规则
+- 作者截断规则
 - API 超时和重试参数
 - 数据源优先级
 - 链接检查配置
@@ -78,19 +75,18 @@ sources:
     - semantic-scholar
     - dblp
 
-venue_mappings:
-  - patterns:
-      - "Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition"
-    standard: "CVPR"
+author_truncation:
+  max_authors: 3
+  suffix: "et. al"
 ```
 
 ## 📊 输出报告
 
-工具会生成一个详细的彩色控制台报告，包括：
+工具会生成彩色控制台报告，并在同目录输出一份 JSON 报告文件（默认后缀 `.report.json`），内容包括：
 
 - ✅ **更新的条目列表**: arXiv → 正式发表版本
-- 🎯 **格式标准化变更**: 冗长的会议名 → 简称
 - ⚠️ **失效的链接列表**: 无法访问的 URL
+- ✂️ **作者截断**: 过长作者列表 → `et. al`
 - 📈 **统计信息**: 总体处理结果汇总
 
 ## 🧪 测试
@@ -105,14 +101,14 @@ bash test.sh
 
 ```bash
 cd examples
-python ../bib_sanitizer.py sample.bib --all
+python ../bib_check.py sample.bib --all
 ```
 
 ## 📁 项目结构
 
 ```
-Bib-Sanitizer/
-├── bib_sanitizer.py       # 主入口
+Bib-Check/
+├── bib_check.py           # 主入口
 ├── config.yaml            # 配置文件
 ├── requirements.txt       # 依赖列表
 ├── utils/                 # 工具模块
@@ -123,7 +119,6 @@ Bib-Sanitizer/
 │   └── dblp.py
 ├── checkers/             # 检查器
 │   ├── auto_update.py    # 自动更新
-│   ├── format_clean.py   # 格式清理
 │   └── link_check.py     # 链接检查
 └── examples/             # 示例文件
     └── sample.bib
@@ -137,7 +132,7 @@ Bib-Sanitizer/
 - 🐛 报告 bug
 - 💡 提出新功能建议
 - 📝 改进文档
-- ➕ 添加新的会议名称映射
+- ➕ 添加新的作者截断规则
 - 🔌 添加新的数据源支持
 
 ## 📄 许可证

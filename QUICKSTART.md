@@ -1,11 +1,11 @@
 # 快速开始指南
 
-这是一个快速上手 Bib-Sanitizer 的指南。
+这是一个快速上手 Bib-Check 的指南。
 
 ## 1. 安装依赖
 
 ```bash
-cd /home/hujie/paper/tools/Bib-Sanitizer
+cd /path/to/Bib-Check
 pip install -r requirements.txt
 ```
 
@@ -16,12 +16,12 @@ pip install -r requirements.txt
 对一个 BibTeX 文件运行所有检查和修复：
 
 ```bash
-python bib_sanitizer.py your_file.bib --all
+python bib_check.py your_file.bib --all
 ```
 
 这会：
 - 自动更新 arXiv 条目为正式发表版本
-- 统一会议名称格式
+- 作者过长自动截断
 - 检查所有链接的可用性
 - 在原文件旁边创建备份（.bak）
 - 直接修改原文件
@@ -31,7 +31,7 @@ python bib_sanitizer.py your_file.bib --all
 使用 `--dry-run` 模式，只查看报告，不修改文件：
 
 ```bash
-python bib_sanitizer.py your_file.bib --all --dry-run
+python bib_check.py your_file.bib --all --dry-run
 ```
 
 ### 输出到新文件
@@ -39,7 +39,7 @@ python bib_sanitizer.py your_file.bib --all --dry-run
 如果你想保留原文件不变：
 
 ```bash
-python bib_sanitizer.py input.bib --all --output output.bib
+python bib_check.py input.bib --all --output output.bib
 ```
 
 ## 3. 单独功能
@@ -47,23 +47,15 @@ python bib_sanitizer.py input.bib --all --output output.bib
 ### 只更新 arXiv 条目
 
 ```bash
-python bib_sanitizer.py your_file.bib --auto-update
+python bib_check.py your_file.bib --auto-update
 ```
 
 这会查找所有仅有 arXiv 版本的论文，并尝试在 Semantic Scholar 和 DBLP 上找到正式发表版本。
 
-### 只统一会议名称
-
-```bash
-python bib_sanitizer.py your_file.bib --format-clean
-```
-
-这会将长的会议名称（如 "Proceedings of the IEEE/CVF Conference on..."）统一为简称（如 "CVPR"）。
-
 ### 只检查链接
 
 ```bash
-python bib_sanitizer.py your_file.bib --check-links
+python bib_check.py your_file.bib --check-links
 ```
 
 这会检查所有 `url` 和 `pdf` 字段的链接是否可访问。
@@ -75,29 +67,27 @@ python bib_sanitizer.py your_file.bib --check-links
 默认先查 Semantic Scholar，再查 DBLP。你可以改变顺序：
 
 ```bash
-python bib_sanitizer.py your_file.bib --auto-update --priority dblp,semantic-scholar
+python bib_check.py your_file.bib --auto-update --priority dblp,semantic-scholar
 ```
 
 ### 使用自定义配置文件
 
 ```bash
-python bib_sanitizer.py your_file.bib --all --config my_config.yaml
+python bib_check.py your_file.bib --all --config my_config.yaml
 ```
 
 ## 5. 配置文件自定义
 
 编辑 `config.yaml` 文件来：
 
-### 添加更多会议名称映射
+### 作者截断规则
 
-在 `venue_mappings` 部分添加新规则：
+在 `author_truncation` 部分调整作者截断阈值：
 
 ```yaml
-venue_mappings:
-  - patterns:
-      - "Your Conference Full Name"
-      - "Another Variant"
-    standard: "YourConf"
+author_truncation:
+  max_authors: 3
+  suffix: "et. al"
 ```
 
 ### 调整超时和重试参数
@@ -123,39 +113,32 @@ sources:
 
 ```bash
 # 先查看会有哪些变化
-python bib_sanitizer.py references.bib --all --dry-run
+python bib_check.py references.bib --all --dry-run
 
 # 确认后执行
-python bib_sanitizer.py references.bib --all
+python bib_check.py references.bib --all
 ```
 
 ### 场景 2：定期维护文献库
 
 ```bash
 # 每个月运行一次，更新 arXiv 论文
-python bib_sanitizer.py my_library.bib --auto-update
+python bib_check.py my_library.bib --auto-update
 ```
 
-### 场景 3：清理从不同来源合并的文献
-
-```bash
-# 统一格式
-python bib_sanitizer.py merged.bib --format-clean
-```
-
-### 场景 4：检查老旧文献的链接
+### 场景 3：检查老旧文献的链接
 
 ```bash
 # 只检查链接，不修改文件
-python bib_sanitizer.py old_papers.bib --check-links
+python bib_check.py old_papers.bib --check-links
 ```
 
 ## 7. 理解输出
 
-工具会生成一个详细的报告，包括：
+工具会生成控制台报告，并同时输出一份 JSON 报告文件（默认后缀 `.report.json`），包括：
 
 - **[更新]**: 从 arXiv 升级到正式发表的条目列表
-- **[格式]**: 统一格式的变更列表
+- **[作者]**: 作者截断记录
 - **[链接]**: 失效的链接列表
 - **[错误]**: 处理过程中的错误（如 API 请求失败）
 - **统计信息**: 总体的统计数据
@@ -186,7 +169,7 @@ python bib_sanitizer.py old_papers.bib --check-links
 
 ```bash
 cd examples
-python ../bib_sanitizer.py sample.bib --all --output sample_cleaned.bib
+python ../bib_check.py sample.bib --all --output sample_cleaned.bib
 ```
 
 ## 10. 获取帮助
@@ -194,5 +177,5 @@ python ../bib_sanitizer.py sample.bib --all --output sample_cleaned.bib
 查看完整的命令行选项：
 
 ```bash
-python bib_sanitizer.py --help
+python bib_check.py --help
 ```

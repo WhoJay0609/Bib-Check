@@ -1,6 +1,6 @@
 # 贡献指南
 
-感谢你对 Bib-Sanitizer 的兴趣！
+感谢你对 Bib-Check 的兴趣！
 
 ## 如何贡献
 
@@ -30,24 +30,20 @@
 - 添加必要的注释和文档字符串
 - 为新功能添加测试用例
 
-### 添加新的会议名称映射
+### 调整作者截断规则
 
-如果你想添加新的会议名称映射规则：
+如果你想修改作者截断规则：
 
 1. 编辑 `config.yaml` 文件
-2. 在 `venue_mappings` 部分添加新的映射
-3. 确保包含常见的变体
-4. 测试你的映射规则
+2. 调整 `author_truncation` 配置
+3. 运行测试验证效果
 
 示例：
 
 ```yaml
-venue_mappings:
-  - patterns:
-      - "International Conference on Your Conference"
-      - "Proceedings of Your Conference"
-      - "Your Conference Full Name"
-    standard: "YourConf"
+author_truncation:
+  max_authors: 4
+  suffix: "et. al"
 ```
 
 ### 添加新的数据源

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Bib-Sanitizer: BibTeX 文件深度检查和自动修复工具
+bib-check: BibTeX 文件深度检查和自动修复工具
 """
 
 import argparse
@@ -15,7 +15,6 @@ from colorama import init, Fore, Style
 from utils.bib_parser import BibParser
 from utils.report import Report
 from checkers.auto_update import AutoUpdater
-from checkers.format_clean import FormatCleaner
 from checkers.link_check import LinkChecker
 
 # 初始化 colorama
@@ -59,15 +58,19 @@ class BibSanitizer:
                 'timeout': 10,
                 'retry': 2
             },
-            'venue_mappings': [],
+            'author_truncation': {
+                'max_authors': 3,
+                'suffix': 'et. al'
+            },
             'output': {
                 'backup': True,
-                'backup_suffix': '.bak'
+                'backup_suffix': '.bak',
+                'report_suffix': '.report.json'
             }
         }
     
-    def process_file(self, input_file, output_file=None, 
-                    auto_update=False, format_clean=False, 
+    def process_file(self, input_file, output_file=None,
+                    auto_update=False,
                     check_links=False, dry_run=False, priority=None):
         """处理 BibTeX 文件"""
         
@@ -96,26 +99,23 @@ class BibSanitizer:
             updater = AutoUpdater(self.config, self.report)
             bib_database = updater.update_entries(bib_database)
         
-        # 功能 2: Format Clean
-        if format_clean:
-            print(f"\n{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
-            print(f"{Fore.CYAN}[功能 2] 统一会议名称格式{Style.RESET_ALL}")
-            print(f"{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
-            
-            cleaner = FormatCleaner(self.config, self.report)
-            bib_database = cleaner.clean_entries(bib_database)
-        
-        # 功能 3: Dead Link Check
+        # 功能 2: Dead Link Check
         if check_links:
             print(f"\n{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
-            print(f"{Fore.CYAN}[功能 3] 检查链接可用性{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}[功能 2] 检查链接可用性{Style.RESET_ALL}")
             print(f"{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
             
             checker = LinkChecker(self.config, self.report)
             checker.check_entries(bib_database)
+
+        # 作者截断（默认启用）
+        print(f"\n{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}[功能 3] 作者截断{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
+        authors_changed = self._truncate_authors(bib_database)
         
         # 写回文件
-        if not dry_run and (auto_update or format_clean):
+        if not dry_run and (auto_update or authors_changed):
             if output_file is None:
                 output_file = input_file
                 # 备份原文件
@@ -132,14 +132,51 @@ class BibSanitizer:
         print(f"{Fore.CYAN}执行报告{Style.RESET_ALL}")
         print(f"{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
         self.report.print_report()
+
+        # 写入 JSON 报告
+        report_target = output_file or input_file
+        report_suffix = self.config.get('output', {}).get('report_suffix', '.report.json')
+        report_path = f"{report_target}{report_suffix}"
+        self.report.write_json(report_path)
+        print(f"\n{Fore.GREEN}[报告] 已写入: {report_path}{Style.RESET_ALL}")
         
         return True
+
+    def _truncate_authors(self, bib_database):
+        """作者过长时截断为 et. al"""
+        config = self.config.get('author_truncation', {})
+        max_authors = int(config.get('max_authors', 3))
+        suffix = config.get('suffix', 'et. al')
+
+        if max_authors < 1:
+            return False
+
+        changed = False
+        for entry in bib_database.entries:
+            if 'author' not in entry:
+                continue
+
+            raw_authors = entry['author']
+            authors = [a.strip() for a in raw_authors.split(' and ') if a.strip()]
+
+            if len(authors) > max_authors:
+                new_value = f"{authors[0]} {suffix}"
+                entry['author'] = new_value
+                changed = True
+                self.report.add_author_truncation(
+                    entry.get('ID', 'unknown'),
+                    raw_authors,
+                    new_value,
+                    len(authors),
+                    max_authors
+                )
+        return changed
 
 
 def main():
     """主函数"""
     parser = argparse.ArgumentParser(
-        description='Bib-Sanitizer: BibTeX 文件深度检查和自动修复工具',
+        description='bib-check: BibTeX 文件深度检查和自动修复工具',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     
@@ -148,13 +185,11 @@ def main():
     parser.add_argument('-c', '--config', default='config.yaml', help='配置文件路径')
     
     # 功能开关
-    parser.add_argument('--auto-update', action='store_true', 
+    parser.add_argument('--auto-update', action='store_true',
                        help='启用自动更新 arXiv 条目')
-    parser.add_argument('--format-clean', action='store_true', 
-                       help='启用会议名称格式统一')
-    parser.add_argument('--check-links', action='store_true', 
+    parser.add_argument('--check-links', action='store_true',
                        help='启用链接检查')
-    parser.add_argument('--all', action='store_true', 
+    parser.add_argument('--all', action='store_true',
                        help='启用所有功能')
     
     # 其他选项
@@ -177,12 +212,11 @@ def main():
     # 如果使用 --all，启用所有功能
     if args.all:
         args.auto_update = True
-        args.format_clean = True
         args.check_links = True
     
     # 检查是否至少启用一个功能
-    if not (args.auto_update or args.format_clean or args.check_links):
-        print(f"{Fore.YELLOW}[警告] 未启用任何功能，请使用 --auto-update, --format-clean, --check-links 或 --all{Style.RESET_ALL}")
+    if not (args.auto_update or args.check_links):
+        print(f"{Fore.YELLOW}[警告] 未启用任何功能，请使用 --auto-update, --check-links 或 --all{Style.RESET_ALL}")
         print(f"{Fore.YELLOW}[提示] 使用 --help 查看帮助信息{Style.RESET_ALL}")
         sys.exit(1)
     
@@ -192,7 +226,6 @@ def main():
         args.input,
         args.output,
         auto_update=args.auto_update,
-        format_clean=args.format_clean,
         check_links=args.check_links,
         dry_run=args.dry_run,
         priority=args.priority

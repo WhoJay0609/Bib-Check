@@ -1,4 +1,4 @@
-# Bib-Sanitizer 项目实施总结
+# Bib-Check 项目实施总结
 
 ## ✅ 项目完成情况
 
@@ -16,16 +16,15 @@
 ## 📁 已创建文件清单
 
 ### 核心程序文件 (10 个)
-1. `bib_sanitizer.py` - 主入口程序 (200+ 行)
+1. `bib_check.py` - 主入口程序 (200+ 行)
 2. `utils/bib_parser.py` - BibTeX 解析器
 3. `utils/report.py` - 报告生成器
 4. `sources/semantic_scholar.py` - Semantic Scholar API
 5. `sources/dblp.py` - DBLP API
 6. `checkers/auto_update.py` - arXiv 自动更新
-7. `checkers/format_clean.py` - 格式统一
-8. `checkers/link_check.py` - 链接检查
-9. `demo.py` - 功能演示脚本
-10. 各模块的 `__init__.py` 文件
+7. `checkers/link_check.py` - 链接检查
+8. `demo.py` - 功能演示脚本
+9. 各模块的 `__init__.py` 文件
 
 ### 配置和依赖文件 (3 个)
 1. `config.yaml` - 完整配置文件（含10+个会议映射）
@@ -58,19 +57,16 @@
 - ✓ 自动更新元数据（venue、year、DOI）
 - ✓ 智能字段合并和清理
 
-### ✅ 功能 2: Format Clean（格式清理）
-- ✓ 会议名称映射规则系统
-- ✓ 精确匹配和正则匹配支持
-- ✓ 预配置 10+ 个主流会议
-- ✓ 易于扩展的配置格式
-- ✓ 批量格式统一
-
-### ✅ 功能 3: Dead Link Check（链接检查）
+### ✅ 功能 2: Dead Link Check（链接检查）
 - ✓ URL 和 PDF 字段检查
 - ✓ HEAD/GET 请求策略
 - ✓ 超时和重试机制
 - ✓ 详细的失效链接报告
 - ✓ 支持各种 HTTP 状态码
+
+### ✅ 功能 3: 作者截断
+- ✓ 过长作者列表自动截断为 `et. al`
+- ✓ 可配置阈值与后缀
 
 ### 🎁 额外功能
 - ✓ 彩色控制台输出（使用 colorama）
@@ -142,7 +138,7 @@
 
 ```bash
 # 1. 进入项目目录
-cd /home/hujie/paper/tools/Bib-Sanitizer
+cd /path/to/Bib-Check
 
 # 2. 安装依赖
 pip install -r requirements.txt
@@ -154,7 +150,7 @@ python demo.py
 bash test.sh
 
 # 5. 实际使用
-python bib_sanitizer.py your_file.bib --all
+python bib_check.py your_file.bib --all
 ```
 
 ## 📝 使用示例
@@ -162,34 +158,31 @@ python bib_sanitizer.py your_file.bib --all
 ### 基本用法
 ```bash
 # 启用所有功能
-python bib_sanitizer.py paper.bib --all
+python bib_check.py paper.bib --all
 
 # 安全模式（不修改文件）
-python bib_sanitizer.py paper.bib --all --dry-run
+python bib_check.py paper.bib --all --dry-run
 ```
 
 ### 单独功能
 ```bash
 # 只更新 arXiv 条目
-python bib_sanitizer.py paper.bib --auto-update
-
-# 只统一格式
-python bib_sanitizer.py paper.bib --format-clean
+python bib_check.py paper.bib --auto-update
 
 # 只检查链接
-python bib_sanitizer.py paper.bib --check-links
+python bib_check.py paper.bib --check-links
 ```
 
 ### 高级选项
 ```bash
 # 指定数据源优先级
-python bib_sanitizer.py paper.bib --auto-update --priority dblp,semantic-scholar
+python bib_check.py paper.bib --auto-update --priority dblp,semantic-scholar
 
 # 输出到新文件
-python bib_sanitizer.py in.bib --all --output out.bib
+python bib_check.py in.bib --all --output out.bib
 
 # 使用自定义配置
-python bib_sanitizer.py paper.bib --all --config my_config.yaml
+python bib_check.py paper.bib --all --config my_config.yaml
 ```
 
 ## 🎨 特色功能
@@ -203,7 +196,7 @@ python bib_sanitizer.py paper.bib --all --config my_config.yaml
 ### 2. 智能识别
 - 自动识别 arXiv-only 条目
 - 区分会议论文和期刊论文
-- 识别各种会议名称变体
+- 识别 arXiv-only 条目与正式出版版本
 
 ### 3. 安全保护
 - 自动备份原文件（.bak）
@@ -239,7 +232,7 @@ python bib_sanitizer.py paper.bib --all --config my_config.yaml
 
 1. **单文件输入**: 支持单个 .bib 或 .tex 文件
 2. **数据源可配置**: 灵活的优先级设置（Semantic Scholar ↔ DBLP）
-3. **规则可扩展**: 易于添加新的会议映射
+3. **作者截断**: 过长作者列表自动截断为 `et. al`
 4. **批量处理**: 一次处理所有条目
 5. **详细报告**: 清晰展示所有变更
 6. **向后兼容**: 不破坏原有的 BibTeX 结构
@@ -267,7 +260,7 @@ python bib_sanitizer.py paper.bib --all --config my_config.yaml
 
 ## 🎉 总结
 
-Bib-Sanitizer 是一个功能完整、设计优雅、文档齐全的 BibTeX 文件处理工具。它实现了所有计划的功能，并提供了良好的扩展性和用户体验。项目可以立即投入使用！
+Bib-Check 是一个功能完整、设计优雅、文档齐全的 BibTeX 文件处理工具。它实现了所有计划的功能，并提供了良好的扩展性和用户体验。项目可以立即投入使用！
 
 ---
 

@@ -1,10 +1,10 @@
 #!/bin/bash
-# Bib-Sanitizer 测试脚本
+# Bib-Check 测试脚本
 
 set -e
 
 echo "================================"
-echo "Bib-Sanitizer 测试脚本"
+echo "Bib-Check 测试脚本"
 echo "================================"
 echo
 
@@ -17,20 +17,16 @@ fi
 # 创建测试输出目录
 mkdir -p test_output
 
-echo "[测试 1] 仅格式清理（dry-run）"
-python bib_sanitizer.py examples/sample.bib --format-clean --dry-run
+echo "[测试 1] 仅链接检查"
+python bib_check.py examples/sample.bib --check-links
 echo
 
-echo "[测试 2] 仅链接检查"
-python bib_sanitizer.py examples/sample.bib --check-links
+echo "[测试 2] 所有功能（输出到新文件）"
+python bib_check.py examples/sample.bib --all --output test_output/sample_cleaned.bib
 echo
 
-echo "[测试 3] 所有功能（输出到新文件）"
-python bib_sanitizer.py examples/sample.bib --all --output test_output/sample_cleaned.bib
-echo
-
-echo "[测试 4] 指定数据源优先级"
-python bib_sanitizer.py examples/sample.bib --auto-update --priority semantic-scholar,dblp --dry-run
+echo "[测试 3] 指定数据源优先级"
+python bib_check.py examples/sample.bib --auto-update --priority semantic-scholar,dblp --dry-run
 echo
 
 echo "================================"

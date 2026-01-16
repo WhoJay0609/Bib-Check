@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Bib-Sanitizer 功能演示脚本
+Bib-Check 功能演示脚本
 
-这个脚本演示了 Bib-Sanitizer 的核心功能，无需真实的 API 调用。
+这个脚本演示了 Bib-Check 的核心功能，无需真实的 API 调用。
 """
 
 from colorama import init, Fore, Style
@@ -50,39 +50,9 @@ def demo_auto_update():
     print("  • 移除了 arXiv 相关字段")
 
 
-def demo_format_clean():
-    """演示格式清理功能"""
-    print_header("功能 2: 统一会议名称格式")
-    
-    print(f"{Fore.YELLOW}[输入] 冗长的会议名称:{Style.RESET_ALL}")
-    print("""
-@inproceedings{example_long_name,
-  title={Attention is All You Need},
-  author={Vaswani, Ashish and others},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
-  year={2017}
-}
-""")
-    
-    print(f"{Fore.GREEN}[输出] 统一后的格式:{Style.RESET_ALL}")
-    print("""
-@inproceedings{example_long_name,
-  title={Attention is All You Need},
-  author={Vaswani, Ashish and others},
-  booktitle={CVPR},
-  year={2017}
-}
-""")
-    
-    print(f"{Fore.CYAN}[说明]{Style.RESET_ALL}")
-    print("  • 将冗长的会议全称统一为简称 CVPR")
-    print("  • 支持多种变体的自动识别")
-    print("  • 可通过配置文件自定义映射规则")
-
-
 def demo_link_check():
     """演示链接检查功能"""
-    print_header("功能 3: 检查链接可用性")
+    print_header("功能 2: 检查链接可用性")
     
     print(f"{Fore.YELLOW}[检查] 条目中的链接:{Style.RESET_ALL}")
     print("""
@@ -113,10 +83,9 @@ def demo_report():
     print(f"    • venue: arXiv preprint... → CVPR")
     print(f"    • year: 2021 → 2021")
     
-    print(f"\n{Fore.GREEN}[格式] 统一了 3 处格式:{Style.RESET_ALL}")
-    print(f"  - {Fore.CYAN}vaswani2017attention{Style.RESET_ALL}.booktitle: Proceedings of... → CVPR")
-    print(f"  - {Fore.CYAN}he2016resnet{Style.RESET_ALL}.booktitle: IEEE Conference... → CVPR")
-    print(f"  - {Fore.CYAN}lecun2015deep{Style.RESET_ALL}.journal: Neural Info... → NeurIPS")
+    print(f"\n{Fore.GREEN}[作者] 截断了 2 个条目:{Style.RESET_ALL}")
+    print(f"  - {Fore.CYAN}brown2020language{Style.RESET_ALL}: Tom B. Brown and ... → Tom B. Brown et. al")
+    print(f"  - {Fore.CYAN}kaplan2020scaling{Style.RESET_ALL}: Jared Kaplan and ... → Jared Kaplan et. al")
     
     print(f"\n{Fore.RED}[链接] 发现 1 个失效链接:{Style.RESET_ALL}")
     print(f"  - {Fore.CYAN}smith2020example{Style.RESET_ALL}.url: https://example.com/paper.pdf")
@@ -125,7 +94,7 @@ def demo_report():
     print(f"\n{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
     print(f"{Fore.CYAN}统计信息:{Style.RESET_ALL}")
     print(f"  • 更新条目: 2")
-    print(f"  • 格式变更: 3")
+    print(f"  • 作者截断: 2")
     print(f"  • 失效链接: 1")
     print(f"  • 错误: 0")
     print(f"{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
@@ -134,13 +103,10 @@ def demo_report():
 def main():
     """主函数"""
     print(f"\n{Fore.GREEN}{'*'*60}{Style.RESET_ALL}")
-    print(f"{Fore.GREEN}Bib-Sanitizer 功能演示{Style.RESET_ALL}")
+    print(f"{Fore.GREEN}Bib-Check 功能演示{Style.RESET_ALL}")
     print(f"{Fore.GREEN}{'*'*60}{Style.RESET_ALL}")
     
     demo_auto_update()
-    input(f"\n{Fore.YELLOW}按 Enter 继续...{Style.RESET_ALL}")
-    
-    demo_format_clean()
     input(f"\n{Fore.YELLOW}按 Enter 继续...{Style.RESET_ALL}")
     
     demo_link_check()
@@ -153,7 +119,7 @@ def main():
     print(f"{Fore.GREEN}{'*'*60}{Style.RESET_ALL}\n")
     
     print(f"{Fore.CYAN}现在可以尝试真实的功能:{Style.RESET_ALL}")
-    print(f"  python bib_sanitizer.py examples/sample.bib --all --dry-run")
+    print(f"  python bib_check.py examples/sample.bib --all --dry-run")
 
 
 if __name__ == '__main__':

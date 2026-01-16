@@ -1,4 +1,4 @@
-# Bib-Sanitizer 配置文件
+# Bib-Check 配置文件
 
 # 数据源配置
 sources:
@@ -28,76 +28,13 @@ link_check:
     - HEAD
     - GET
 
-# 会议名称标准化规则
-venue_mappings:
-  # CVPR
-  - patterns:
-      - "Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition"
-      - "IEEE Conference on Computer Vision and Pattern Recognition"
-      - "CVPR"
-    standard: "CVPR"
-  
-  # ICCV
-  - patterns:
-      - "Proceedings of the IEEE/CVF International Conference on Computer Vision"
-      - "IEEE International Conference on Computer Vision"
-      - "ICCV"
-    standard: "ICCV"
-  
-  # ECCV
-  - patterns:
-      - "European Conference on Computer Vision"
-      - "ECCV"
-    standard: "ECCV"
-  
-  # NeurIPS
-  - patterns:
-      - "Advances in Neural Information Processing Systems"
-      - "Neural Information Processing Systems"
-      - "NeurIPS"
-      - "NIPS"
-    standard: "NeurIPS"
-  
-  # ICML
-  - patterns:
-      - "International Conference on Machine Learning"
-      - "ICML"
-    standard: "ICML"
-  
-  # ICLR
-  - patterns:
-      - "International Conference on Learning Representations"
-      - "ICLR"
-    standard: "ICLR"
-  
-  # ACL
-  - patterns:
-      - "Annual Meeting of the Association for Computational Linguistics"
-      - "Proceedings of the.*Annual Meeting.*Association for Computational Linguistics"
-      - "ACL"
-    standard: "ACL"
-  
-  # EMNLP
-  - patterns:
-      - "Conference on Empirical Methods in Natural Language Processing"
-      - "EMNLP"
-    standard: "EMNLP"
-  
-  # AAAI
-  - patterns:
-      - "AAAI Conference on Artificial Intelligence"
-      - "Proceedings of the.*AAAI.*"
-      - "AAAI"
-    standard: "AAAI"
-  
-  # IJCAI
-  - patterns:
-      - "International Joint Conference on Artificial Intelligence"
-      - "IJCAI"
-    standard: "IJCAI"
+# 作者截断配置
+author_truncation:
+  max_authors: 3
+  suffix: "et. al"
 
 # 输出配置
 output:
   backup: true  # 修改前备份原文件
   backup_suffix: ".bak"
-  report_format: "text"  # text 或 json
+  report_suffix: ".report.json"
