@@ -1,8 +1,11 @@
 """检查链接可用性"""
 
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from colorama import Fore, Style
 from tqdm import tqdm
+
+from utils.cache import FileCache
 
 
 class LinkChecker:
@@ -19,6 +22,8 @@ class LinkChecker:
                                                'Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
         self.session = requests.Session()
         self.session.headers.update({'User-Agent': self.user_agent})
+        self.max_workers = config.get('concurrency', {}).get('max_workers', 4)
+        self.cache = FileCache(config.get('cache', {}))
     
     def check_entries(self, bib_database):
         """检查条目"""
@@ -44,8 +49,17 @@ class LinkChecker:
         print(f"{Fore.GREEN}[信息] 找到 {len(links_to_check)} 个链接需要检查{Style.RESET_ALL}")
         
         # 遍历检查
-        for entry_id, field, url in tqdm(links_to_check, desc="检查链接", unit="链接"):
-            self._check_link(entry_id, field, url)
+        if self.max_workers and self.max_workers > 1:
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                futures = [
+                    executor.submit(self._check_link, entry_id, field, url)
+                    for entry_id, field, url in links_to_check
+                ]
+                for _ in tqdm(as_completed(futures), total=len(futures), desc="检查链接", unit="链接"):
+                    pass
+        else:
+            for entry_id, field, url in tqdm(links_to_check, desc="检查链接", unit="链接"):
+                self._check_link(entry_id, field, url)
         
         dead_count = len(self.report.dead_links)
         if dead_count > 0:
@@ -60,6 +74,13 @@ class LinkChecker:
         if not url or not url.startswith('http'):
             self.report.add_dead_link(entry_id, field, url, '无效的 URL 格式')
             return
+
+        cache_key = f"link:{url}"
+        cached_status = self.cache.get(cache_key)
+        if cached_status is not None:
+            if cached_status != 'OK':
+                self.report.add_dead_link(entry_id, field, url, cached_status)
+            return
         
         # 尝试 HEAD 请求
         status = self._try_request(url, 'HEAD')
@@ -71,6 +92,8 @@ class LinkChecker:
         # 如果仍然失败，记录
         if status != 'OK':
             self.report.add_dead_link(entry_id, field, url, status)
+
+        self.cache.set(cache_key, status)
     
     def _try_request(self, url, method='HEAD'):
         """尝试请求"""
